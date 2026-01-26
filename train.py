@@ -1,0 +1,112 @@
+from model import DogVsCatWithResNet18
+
+import torch
+from torch import nn
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+model = DogVsCatWithResNet18().to(device)
+
+# Hyperparameters -------------------------------------------------------
+
+TRAINING_CYCLES = 5
+BATCH_SIZE = 64
+NUMBER_OF_TRAINING_IMAGES = 20000 # This is a placeholder # Please enter the number of training images in your dataset here
+
+# Loss, accuracy, scheduler before training -----------------------------
+
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(params=model.fc.parameters(), lr=0.001)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,
+                                                       factor=0.5,
+                                                       patience=2,
+                                                       threshold=0.005,
+                                                       min_lr=0.0000001)
+
+def accuracy_func(pred, true):
+    acc_tensor = torch.eq(true, torch.argmax(pred, dim=1))
+    acc = torch.sum(acc_tensor) / len(true)
+    return acc * 100
+
+# Load train data -------------------------------------------------------------
+
+transform = transforms.Compose([
+    transforms.Resize(265),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=(0.485, 0.456, 0.406),
+                         std=(0.229, 0.224, 0.225))  # For cat dog classification
+])
+
+train_data = datasets.ImageFolder("CatVsDog",
+                                  transform=transform)
+
+train_dataloader = DataLoader(
+    dataset=train_data,
+    batch_size=BATCH_SIZE,
+    pin_memory=True,
+    shuffle=True,
+    num_workers=4
+)
+
+def main():
+
+    # Load model -------------------------------------------------------
+
+    try:
+        checkpoint = torch.load("DogCatModel.pth", weights_only=True)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+        epoch = checkpoint["epoch"]
+    except Exception as e:
+        print(e)
+        print("Trying to create a new model")
+        epoch = 0
+
+    # Training loop ------------------------------------------------------
+
+    epochs = epoch + TRAINING_CYCLES
+
+    for epoch in range(epoch+1, epochs+1):
+        model.train()
+        print("Processing Epoch " + str(epoch) + "...")
+        sum_loss, sum_acc = 0, 0
+
+        for images, labels in train_dataloader:
+            images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True) # non_blocking helps CPU and GPU work at the same time instead of waiting each other
+
+            logit_pred = model(images)
+            prob_pred = torch.softmax(logit_pred, dim=1)
+
+            batch_loss = loss_func(logit_pred, labels)
+            batch_acc = accuracy_func(pred=prob_pred, true=labels)
+
+            optimizer.zero_grad()
+
+            batch_loss.backward()
+
+            optimizer.step()
+
+            sum_loss += batch_loss
+            sum_acc += batch_acc
+
+        loss = (sum_loss) / ((NUMBER_OF_TRAINING_IMAGES)/BATCH_SIZE)
+        acc = (sum_acc) / ((NUMBER_OF_TRAINING_IMAGES)/BATCH_SIZE)
+        scheduler.step(loss)
+
+        if epoch % 1 == 0:
+            print(f"Epoch: {epoch} | Loss: {loss:.6f} | Accuracy: {acc:.2f}%")
+
+    # Save model -------------------------------------------------------
+
+    torch.save(obj={"model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "scheduler_state_dict": scheduler.state_dict(),
+                    "epoch": epoch},
+               f="DogCatModel.pth")
+
+if __name__ == '__main__':
+    main()
