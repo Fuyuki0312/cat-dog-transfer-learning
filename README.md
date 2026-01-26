@@ -24,3 +24,6 @@ You may use:
 - Any custom cat/dog image dataset
 Pretrained model weights (.pth) are not included in this repository due to file size limits.
 Download pretrained weights here: https://drive.google.com/file/d/1hLRsoF21T-vD8vWCxFLQTtkxNda2RFZj/view?usp=sharing
+
+
+This project was built in 01/2026 as part of my journey to become an AI Engineer
