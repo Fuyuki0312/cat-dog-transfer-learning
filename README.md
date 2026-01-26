@@ -1,5 +1,12 @@
-## cat-dog-transfer-learning
-Binary image classification using ResNet18 pretrained on ImageNet, demonstrating transfer learning and inference pipeline with PyTorch.
+## Cat vs Dog Classification with Transfer Learning
+Image classification using ResNet18 pretrained on ImageNet, demonstrating transfer learning and inference pipeline with PyTorch.
+
+
+## Project Overview
+Task: Image Classification (Cat vs Dog)
+Model: ResNet18 (pretrained on ImageNet)
+Framework: PyTorch
+Technique: Transfer Learning (frozen backbone + custom classifier)
 
 
 ## Dataset
@@ -12,5 +19,8 @@ CatVsDog/
 
 
 ## Inference
-You can use your own cat or dog images
+You may use:
+- Kaggle Cats vs Dogs dataset
+- Any custom cat/dog image dataset
+Pretrained model weights (.pth) are not included in this repository due to file size limits.
 Download pretrained weights here: https://drive.google.com/file/d/1hLRsoF21T-vD8vWCxFLQTtkxNda2RFZj/view?usp=sharing
