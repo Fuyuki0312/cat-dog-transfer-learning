@@ -1,5 +1,3 @@
 torch
 torchvision
 Pillow
-
-Used PyTorch version: 2.5.1+cu121
