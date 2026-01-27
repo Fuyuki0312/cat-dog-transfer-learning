@@ -17,7 +17,7 @@ NUMBER_OF_TRAINING_IMAGES = 20000 # This is a placeholder # Please enter the num
 
 # Loss, accuracy, scheduler before training -----------------------------
 
-loss_fn = nn.CrossEntropyLoss()
+loss_func = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(params=model.fc.parameters(), lr=0.001)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,
                                                        factor=0.5,
@@ -109,4 +109,5 @@ def main():
                f="DogCatModel.pth")
 
 if __name__ == '__main__':
+
     main()
