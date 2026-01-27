@@ -19,7 +19,7 @@ CatVsDog/
 
 
 ## Inference
-You may use: Kaggle Cats vs Dogs dataset or any custom cat/dog image dataset.\n
+You may use: Kaggle Cats vs Dogs dataset or any custom cat/dog image dataset. print("something")
 Pretrained model weights (.pth) are not included in this repository due to file size limits.
 Download pretrained weights here: https://drive.google.com/file/d/1hLRsoF21T-vD8vWCxFLQTtkxNda2RFZj/view?usp=sharing
 
