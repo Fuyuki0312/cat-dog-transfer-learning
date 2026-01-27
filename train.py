@@ -14,6 +14,7 @@ model = DogVsCatWithResNet18().to(device)
 TRAINING_CYCLES = 5
 BATCH_SIZE = 64
 NUMBER_OF_TRAINING_IMAGES = 20000 # This is a placeholder # Please enter the number of training images in your dataset here
+torch.manual_seed(42)
 
 # Loss, accuracy, scheduler before training -----------------------------
 
@@ -111,3 +112,4 @@ def main():
 if __name__ == '__main__':
 
     main()
+
