@@ -11,9 +11,8 @@ model = DogVsCatWithResNet18().to(device)
 
 # Hyperparameters -------------------------------------------------------
 
-TRAINING_CYCLES = 5
+TRAINING_CYCLES = 4
 BATCH_SIZE = 64
-NUMBER_OF_TRAINING_IMAGES = 20000 # This is a placeholder # Please enter the number of training images in your dataset here
 TEST_AFTER_n_TRAINING_CYCLES = 1
 torch.manual_seed(42)
 
@@ -95,7 +94,7 @@ def main():
       
         model.train()
         for images, labels in train_dataloader:
-            images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True) # non_blocking helps CPU and GPU work at the same time instead of waiting each other
+            images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
 
             pred_logits = model(images)
 
@@ -111,8 +110,8 @@ def main():
             sum_loss += batch_loss
             sum_acc += batch_acc
 
-        loss = (sum_loss) / ((NUMBER_OF_TRAINING_IMAGES)/BATCH_SIZE)
-        acc = (sum_acc) / ((NUMBER_OF_TRAINING_IMAGES)/BATCH_SIZE)
+        loss = (sum_loss) / len(train_dataloader)
+        acc = (sum_acc) / len(train_dataloader)
         scheduler.step(loss)
 
         if epoch % TEST_AFTER_n_TRAINING_CYCLES == 0:
@@ -134,7 +133,7 @@ def main():
             test_acc = test_sum_acc / len(test_dataloader)
                 
             print(f"Epoch: {epoch} | Loss: {loss:.6f} | Accuracy: {acc:.1f}%")
-            print(f"                 Test loss: {test_loss:.6f} | Test accuracy: {test_acc:.1f}%"
+            print(f"         Test loss: {test_loss:.6f} | Test accuracy: {test_acc:.1f}%")
 
     # Save model -------------------------------------------------------
 
