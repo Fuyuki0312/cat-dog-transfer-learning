@@ -3,7 +3,7 @@ from model import DogVsCatWithResNet18
 import torch
 from torch import nn
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -42,14 +42,30 @@ transform = transforms.Compose([
                          std=(0.229, 0.224, 0.225))  # For cat dog classification
 ])
 
-train_data = datasets.ImageFolder("CatVsDog",
+full_data = datasets.ImageFolder("CatVsDog",
                                   transform=transform)
+
+train_size = int(0.8 * len(full_data))
+test_size = len(full_data) - train_size
+
+train_data, test_data = random_split(
+    full_data,
+    [train_size, test_size]
+)
 
 train_dataloader = DataLoader(
     dataset=train_data,
     batch_size=BATCH_SIZE,
     pin_memory=True,
     shuffle=True,
+    num_workers=4
+)
+
+test_dataloader = DataLoader(
+    dataset=test_data,
+    batch_size=BATCH_SIZE,
+    pin_memory=True,
+    shuffle=False,
     num_workers=4
 )
 
@@ -81,11 +97,10 @@ def main():
         for images, labels in train_dataloader:
             images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True) # non_blocking helps CPU and GPU work at the same time instead of waiting each other
 
-            logit_pred = model(images)
-            prob_pred = torch.softmax(logit_pred, dim=1)
+            pred_logits = model(images)
 
-            batch_loss = loss_func(logit_pred, labels)
-            batch_acc = accuracy_func(pred=prob_pred, true=labels)
+            batch_loss = loss_func(pred_logits, labels)
+            batch_acc = accuracy_func(pred=pred_logits, true=labels)
 
             optimizer.zero_grad()
 
@@ -101,7 +116,25 @@ def main():
         scheduler.step(loss)
 
         if epoch % TEST_AFTER_n_TRAINING_CYCLES == 0:
-            print(f"Epoch: {epoch} | Loss: {loss:.6f} | Accuracy: {acc:.2f}%")
+            test_sum_loss, test_sum_acc = 0, 0
+
+            model.eval()
+            for images, labels in test_dataloader:
+                images, labels = images.to(device), labels.to(device)
+
+                with torch.inference_mode():
+                    test_pred_logits = model(images)
+                test_batch_loss = loss_func(test_pred_logits, labels)
+                test_batch_acc = accuracy_func(test_pred_logits, labels)
+
+                test_sum_loss += test_batch_loss
+                test_sum_acc += test_batch_acc
+
+            test_loss = test_sum_loss / len(test_dataloader)
+            test_acc = test_sum_acc / len(test_dataloader)
+                
+            print(f"Epoch: {epoch} | Loss: {loss:.6f} | Accuracy: {acc:.1f}%")
+            print(f"                 Test loss: {test_loss:.6f} | Test accuracy: {test_acc:.1f}%"
 
     # Save model -------------------------------------------------------
 
@@ -112,7 +145,4 @@ def main():
                f="DogCatModel.pth")
 
 if __name__ == '__main__':
-
     main()
-
-
