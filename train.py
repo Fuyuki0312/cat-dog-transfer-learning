@@ -14,6 +14,7 @@ model = DogVsCatWithResNet18().to(device)
 TRAINING_CYCLES = 5
 BATCH_SIZE = 64
 NUMBER_OF_TRAINING_IMAGES = 20000 # This is a placeholder # Please enter the number of training images in your dataset here
+TEST_AFTER_n_TRAINING_CYCLES = 1
 torch.manual_seed(42)
 
 # Loss, accuracy, scheduler before training -----------------------------
@@ -72,10 +73,11 @@ def main():
     epochs = epoch + TRAINING_CYCLES
 
     for epoch in range(epoch+1, epochs+1):
-        model.train()
-        print("Processing Epoch " + str(epoch) + "...")
+        if epoch % TEST_AFTER_n_TRAINING_CYCLES == 0:
+            print("Processing Epoch " + str(epoch) + "...")
         sum_loss, sum_acc = 0, 0
-
+      
+        model.train()
         for images, labels in train_dataloader:
             images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True) # non_blocking helps CPU and GPU work at the same time instead of waiting each other
 
@@ -98,7 +100,7 @@ def main():
         acc = (sum_acc) / ((NUMBER_OF_TRAINING_IMAGES)/BATCH_SIZE)
         scheduler.step(loss)
 
-        if epoch % 1 == 0:
+        if epoch % TEST_AFTER_n_TRAINING_CYCLES == 0:
             print(f"Epoch: {epoch} | Loss: {loss:.6f} | Accuracy: {acc:.2f}%")
 
     # Save model -------------------------------------------------------
@@ -112,4 +114,5 @@ def main():
 if __name__ == '__main__':
 
     main()
+
 
